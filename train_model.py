@@ -74,7 +74,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-# Step 9: Save the trained model
+# Step 9: Save the trained model and feature list
 import joblib
 joblib.dump(model, 'hiv_probability_model.pkl')
 print("Model saved as hiv_probability_model.pkl (joblib)")
+
+# Save the feature list for inference alignment
+with open('model_features.txt', 'w') as f:
+    for feat in features:
+        f.write(f"{feat}\n")
+print("Feature list saved as model_features.txt")
