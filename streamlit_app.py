@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
+import os
 
 st.set_page_config(page_title="HIVision: Smart HIV Risk Predictor", layout="wide")
 st.title("HIVision: Smart HIV Risk Predictor Dashboard")
@@ -16,14 +17,19 @@ WHO_REGIONS = [
     "Western Pacific (WPRO)"
 ]
 
-# Load model
+# Load model and feature list
 def load_model():
     return joblib.load("hiv_probability_model.pkl")
 
+def load_feature_list():
+    with open("model_features.txt", "r") as f:
+        return [line.strip() for line in f.readlines()]
+
 try:
     model = load_model()
+    feature_list = load_feature_list()
 except Exception as e:
-    st.error(f"Failed to load model: {e}")
+    st.error(f"Failed to load model or feature list: {e}")
     st.stop()
 
 # Sidebar for navigation
@@ -49,19 +55,46 @@ if page == "Predict HIV Probability":
     who_region = st.selectbox("WHO Region", WHO_REGIONS)
 
     # Prepare input for model (one-hot encoding for region)
-    input_dict = {
-        'Estimated ART coverage among people living with HIV (%)_median': art_coverage,
-        'Estimated ART coverage among children (%)_median': art_coverage_children,
-        'New_Cases_Adults': new_cases,
-        'Deaths': deaths,
-        'Mother_to_Child_Prevention': mother_to_child,
+    # --- FIX: Always use model_features.txt for input columns ---
+    input_dict = {}
+    # Map display names to codes for robust matching
+    region_map = {
+        'Africa (AFRO)': 'AFR',
+        'Americas (AMRO)': 'AMR',
+        'South-East Asia (SEARO)': 'SEAR',
+        'Europe (EURO)': 'EUR',
+        'Eastern Mediterranean (EMRO)': 'EMR',
+        'Western Pacific (WPRO)': 'WPR',
     }
-    # Add one-hot region columns
-    for region in WHO_REGIONS:
-        input_dict[f'WHO Region_{region}'] = 1 if region == who_region else 0
+    selected_code = region_map.get(who_region, who_region)
+    # Fill input_dict with all features from model_features.txt
+    for feat in feature_list:
+        if feat == 'Estimated ART coverage among people living with HIV (%)_median':
+            input_dict[feat] = art_coverage
+        elif feat == 'Estimated ART coverage among children (%)_median':
+            input_dict[feat] = art_coverage_children
+        elif feat == 'New_Cases_Adults':
+            input_dict[feat] = new_cases
+        elif feat == 'Deaths':
+            input_dict[feat] = deaths
+        elif feat == 'Mother_to_Child_Prevention':
+            input_dict[feat] = mother_to_child
+        elif feat.startswith('WHO Region_'):
+            # Set 1 for selected region, 0 otherwise
+            input_dict[feat] = 1 if feat.endswith(selected_code) else 0
+        else:
+            input_dict[feat] = 0  # Default for any extra features
+    # Build DataFrame in exact order
+    X = pd.DataFrame([[input_dict[feat] for feat in feature_list]], columns=feature_list)
 
     if st.button("Predict"):
-        X = pd.DataFrame([input_dict])
+        # Debug: Show feature alignment
+        st.write("Model expects features:", feature_list)
+        st.write("Input DataFrame columns:", X.columns.tolist())
+        # Check for mismatch
+        if feature_list != list(X.columns):
+            st.error("Feature mismatch! Please check model_features.txt and input construction.")
+            st.stop()
         if hasattr(model, "predict_proba"):
             probability = model.predict_proba(X)[0][1]
             st.success(f"Predicted HIV Probability: {probability:.2%}")
