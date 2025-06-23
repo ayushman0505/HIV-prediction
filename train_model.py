@@ -62,6 +62,8 @@ features = [
     'Mother_to_Child_Prevention'
 ] + list(who_region_dummies.columns)
 
+print('FEATURES FOR STREAMLIT:', features)
+
 X = df[features]
 y = df['HIV_Probability']
 
