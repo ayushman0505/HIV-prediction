@@ -3,38 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIV Probability Prediction</title>
+    <title>{{ project_name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>HIV Probability Prediction</h1>
-        <form action="/predict" method="POST">
-            <!-- Anti Retro-viral Therapy -->
-            <label for="estimated_art">Estimated ART Coverage (People Living with HIV):</label>
-            <input type="number" id="estimated_art" name="estimated_art" step="0.1" required>
+    <div class="main-layout">
+        <aside class="sidebar">
+            <h2>WHO Region Codes</h2>
+            <ul>
+                {% for code, region in who_region_info.items() %}
+                <li><strong>{{ code }}</strong>: {{ region }}</li>
+                {% endfor %}
+            </ul>
+            <div class="sidebar-info">
+                <h3>About ART</h3>
+                <p><strong>ART</strong> (Antiretroviral Therapy) is the use of a combination of medicines to treat HIV infection, helping people live longer and healthier lives.</p>
+            </div>
+        </aside>
+        <div class="container">
+            <h1>{{ project_name }}</h1>
+            <form action="/predict" method="POST">
+                <label for="estimated_art">Estimated ART Coverage (People Living with HIV):</label>
+                <input type="number" id="estimated_art" name="estimated_art" step="0.1" required placeholder="e.g. 75.5">
 
-            <label for="estimated_art_children">Estimated ART Coverage (Children):</label>
-            <input type="number" id="estimated_art_children" name="estimated_art_children" step="0.1" required>
+                <label for="estimated_art_children">Estimated ART Coverage (Children):</label>
+                <input type="number" id="estimated_art_children" name="estimated_art_children" step="0.1" required placeholder="e.g. 60.0">
 
-            <label for="new_cases">New Cases (Adults 15-49):</label>
-            <input type="number" id="new_cases" name="new_cases" required>
+                <label for="new_cases">New Cases (Adults 15-49):</label>
+                <input type="number" id="new_cases" name="new_cases" required placeholder="e.g. 1200">
 
-            <label for="deaths">Deaths:</label>
-            <input type="number" id="deaths" name="deaths" required>
+                <label for="deaths">Deaths:</label>
+                <input type="number" id="deaths" name="deaths" required placeholder="e.g. 300">
 
-            <label for="mother_to_child">Mother-to-Child Prevention Percentage:</label>
-            <input type="number" id="mother_to_child" name="mother_to_child" step="0.1" required>
+                <label for="mother_to_child">Mother-to-Child Prevention Percentage:</label>
+                <input type="number" id="mother_to_child" name="mother_to_child" step="0.1" required placeholder="e.g. 85.0">
 
-            <label for="who_region">WHO Region (Encoded):</label>
-            <input type="number" id="who_region" name="who_region" required>
+                <label for="who_region">WHO Region (Encoded):</label>
+                <input type="number" id="who_region" name="who_region" required placeholder="e.g. 0 for Africa">
 
-            <button type="submit">Predict</button>
-        </form>
+                <button type="submit">Predict</button>
+            </form>
 
-        {% if prediction_text %}
-        <h2>{{ prediction_text }}</h2>
-        {% endif %}
+            {% if prediction_text %}
+            <h2>{{ prediction_text }}</h2>
+            {% endif %}
+
+            {% if input_summary %}
+            <div class="input-summary">
+                <h3>Input Summary</h3>
+                <ul>
+                    {% for k, v in input_summary.items() %}
+                    <li><strong>{{ k }}:</strong> {{ v }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
     </div>
     <div id="loading">
         <div class="spinner"></div>

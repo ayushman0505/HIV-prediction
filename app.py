@@ -4,25 +4,45 @@ import joblib
 
 app = Flask(__name__)
 
+# Project name
+PROJECT_NAME = "HIVision: Smart HIV Risk Predictor"
+
 # Load the trained model (this will load the 'hiv_probability_model.pkl' file)
 model = joblib.load('hiv_probability_model.pkl')
 
-# Step 1: Define a route to the homepage (HTML form for input)
 @app.route('/')
 def index():
-    return render_template('index.html')
+    who_region_info = {
+        0: 'Africa (AFRO)',
+        1: 'Americas (AMRO)',
+        2: 'South-East Asia (SEARO)',
+        3: 'Europe (EURO)',
+        4: 'Eastern Mediterranean (EMRO)',
+        5: 'Western Pacific (WPRO)'
+    }
+    return render_template('index.html', project_name=PROJECT_NAME, who_region_info=who_region_info)
 
-# Step 2: Define a route to handle prediction
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get data from the HTML form
-        estimated_art = float(request.form['estimated_art'])
-        estimated_art_children = float(request.form['estimated_art_children'])
-        new_cases = float(request.form['new_cases'])
-        deaths = float(request.form['deaths'])
-        mother_to_child = float(request.form['mother_to_child'])
-        who_region_encoded = int(request.form['who_region'])
+        # Get data from the HTML form with validation and tooltips
+        def get_float(field, default=0.0):
+            try:
+                return float(request.form.get(field, default))
+            except (ValueError, TypeError):
+                return default
+        def get_int(field, default=0):
+            try:
+                return int(request.form.get(field, default))
+            except (ValueError, TypeError):
+                return default
+
+        estimated_art = get_float('estimated_art')
+        estimated_art_children = get_float('estimated_art_children')
+        new_cases = get_float('new_cases')
+        deaths = get_float('deaths')
+        mother_to_child = get_float('mother_to_child')
+        who_region_encoded = get_int('who_region')
 
         # Create DataFrame from input data
         new_data = pd.DataFrame({
@@ -34,14 +54,52 @@ def predict():
             'WHO_Region_Encoded': [who_region_encoded]
         })
 
-        # Make prediction
+        # Make prediction (probability)
+        probability = model.predict_proba(new_data)[0][1] if hasattr(model, 'predict_proba') else model.predict(new_data)[0]
         prediction = model.predict(new_data)[0]
 
-        # Return the prediction result
-        return render_template('index.html', prediction_text=f'HIV Probability: {prediction:.4f}')
+        # Risk category
+        if probability < 0.33:
+            risk = "Low"
+        elif probability < 0.66:
+            risk = "Medium"
+        else:
+            risk = "High"
+
+        # Prepare summary
+        input_summary = {
+            'Estimated ART coverage (%)': estimated_art,
+            'ART coverage among children (%)': estimated_art_children,
+            'New Cases (Adults)': new_cases,
+            'Deaths': deaths,
+            'Mother-to-Child Prevention': mother_to_child,
+            'WHO Region (encoded)': who_region_encoded
+        }
+
+        return render_template(
+            'index.html',
+            project_name=PROJECT_NAME,
+            prediction_text=f'HIV Probability: {probability:.4f} ({risk} Risk)',
+            input_summary=input_summary,
+            who_region_info={
+                0: 'Africa (AFRO)',
+                1: 'Americas (AMRO)',
+                2: 'South-East Asia (SEARO)',
+                3: 'Europe (EURO)',
+                4: 'Eastern Mediterranean (EMRO)',
+                5: 'Western Pacific (WPRO)'
+            }
+        )
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return render_template('index.html', project_name=PROJECT_NAME, prediction_text=f'Error: {str(e)}', who_region_info={
+                0: 'Africa (AFRO)',
+                1: 'Americas (AMRO)',
+                2: 'South-East Asia (SEARO)',
+                3: 'Europe (EURO)',
+                4: 'Eastern Mediterranean (EMRO)',
+                5: 'Western Pacific (WPRO)'
+            })
 
 if __name__ == "__main__":
     app.run(debug=True)

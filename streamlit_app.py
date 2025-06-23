@@ -1,16 +1,20 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import joblib
+import numpy as np
 
-st.set_page_config(page_title="HIV Probability Model App", layout="wide")
-st.title("HIV Probability Model Dashboard")
+st.set_page_config(page_title="HIVision: Smart HIV Risk Predictor", layout="wide")
+st.title("HIVision: Smart HIV Risk Predictor Dashboard")
 
 # Load model
 def load_model():
-    with open("hiv_probability_model.pkl", "rb") as f:
-        return pickle.load(f)
+    return joblib.load("hiv_probability_model.pkl")
 
-model = load_model()
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
+    st.stop()
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -18,18 +22,26 @@ page = st.sidebar.radio("Go to", ["Predict HIV Probability", "View Data"])
 
 if page == "Predict HIV Probability":
     st.header("Predict HIV Probability")
-    # Example input fields (customize as per your model's features)
-    age = st.number_input("Age", min_value=0, max_value=100, value=30)
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    country = st.text_input("Country", "Kenya")
-    # Add more fields as required by your model
+    art_coverage = st.number_input("Estimated ART coverage among people living with HIV (%)", min_value=0.0, max_value=100.0, value=70.0)
+    art_coverage_children = st.number_input("Estimated ART coverage among children (%)", min_value=0.0, max_value=100.0, value=60.0)
+    new_cases = st.number_input("New Cases (Adults)", min_value=0.0, value=1000.0)
+    deaths = st.number_input("Deaths", min_value=0.0, value=100.0)
+    mother_to_child = st.number_input("Mother-to-Child Prevention (%)", min_value=0.0, max_value=100.0, value=80.0)
+    who_region = st.number_input("WHO Region (Encoded)", min_value=0, max_value=10, value=1)
 
     if st.button("Predict"):
         # Prepare input for model (customize as per your model's requirements)
-        # Example: X = [[age, 1 if gender == 'Male' else 0, ...]]
-        X = [[age, 1 if gender == 'Male' else 0]]  # Update this line as needed
-        probability = model.predict_proba(X)[0][1]
-        st.success(f"Predicted HIV Probability: {probability:.2%}")
+        X = [[art_coverage, art_coverage_children, new_cases, deaths, mother_to_child, who_region]]  # Update this line as needed
+        if hasattr(model, "predict_proba"):
+            probability = model.predict_proba(X)[0][1]
+            st.success(f"Predicted HIV Probability: {probability:.2%}")
+        elif hasattr(model, "predict"):
+            prediction = model.predict(X)[0]
+            st.success(f"Predicted HIV Probability: {prediction}")
+        elif isinstance(model, np.ndarray):
+            st.error("Loaded file is a NumPy array, not a trained model. Please check your 'hiv_probability_model.pkl' file.")
+        else:
+            st.error("Loaded object is not a valid model. Please check your 'hiv_probability_model.pkl' file.")
 
 elif page == "View Data":
     st.header("Explore Data")
@@ -51,3 +63,5 @@ elif page == "View Data":
     st.write("Columns:", df.columns.tolist())
 
 st.sidebar.info("Developed with Streamlit. Customize this app as needed!")
+
+
