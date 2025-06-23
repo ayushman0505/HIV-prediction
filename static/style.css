@@ -1,0 +1,209 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* Loading Spinner Styles */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Ensure it appears above all other elements */
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0s, opacity 0.3s ease-in-out;
+}
+
+#loading.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.spinner {
+    border: 8px solid #e3f2fd; /* Light blue border */
+    border-top: 8px solid #42a5f5; /* Darker blue for the spinner */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+body {
+    font-family: 'Open Sans', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    background-size: cover;
+    animation: backgroundAnim 5s infinite alternate;
+}
+
+h1 {
+    font-size: 3rem;
+    text-align: center;
+    color: #1565c0; /* Medical blue */
+    animation: fadeIn 2s ease-in-out;
+    margin-bottom: 20px;
+}
+
+button {
+    background-color: #42a5f5; /* Light blue */
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    background-color: #1e88e5; /* Darker blue */
+    transform: scale(1.1);
+}
+
+button:active {
+    background-color: #1565c0;
+}
+
+/* Input Fields */
+input[type="number"], select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #90caf9; /* Light blue border */
+    width: 250px;
+    margin: 10px auto;
+    font-size: 1rem;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    text-align: center;
+    background-color: #e3f2fd; /* Light background */
+}
+
+input[type="number"]:focus, select:focus {
+    border-color: #42a5f5;
+    outline: none;
+    box-shadow: 0 0 10px rgba(66, 165, 245, 0.5);
+}
+
+/* Container Styles */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9); /* White with slight transparency */
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.card {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    margin: 10px 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #1565c0; /* Medical blue */
+}
+
+.card p {
+    font-size: 1.1rem;
+    color: #555;
+    margin: 0;
+}
+
+/* Footer Styles */
+footer {
+    position: absolute;
+    bottom: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #1565c0;
+    opacity: 0.8;
+    width: 100%;
+}
+
+footer a {
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: #1e88e5;
+}
+
+/* Animations */
+@keyframes backgroundAnim {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 600px) {
+    body {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+    .container {
+        width: 100%;
+        padding: 30px;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+    button {
+        font-size: 1rem;
+        padding: 10px 25px;
+    }
+    input[type="number"], select {
+        width: 200px;
+        font-size: 0.9rem;
+    }
+}
