@@ -6,6 +6,16 @@ import numpy as np
 st.set_page_config(page_title="HIVision: Smart HIV Risk Predictor", layout="wide")
 st.title("HIVision: Smart HIV Risk Predictor Dashboard")
 
+# WHO region options for one-hot encoding
+WHO_REGIONS = [
+    "Africa (AFRO)",
+    "Americas (AMRO)",
+    "South-East Asia (SEARO)",
+    "Europe (EURO)",
+    "Eastern Mediterranean (EMRO)",
+    "Western Pacific (WPRO)"
+]
+
 # Load model
 def load_model():
     return joblib.load("hiv_probability_model.pkl")
@@ -20,12 +30,12 @@ except Exception as e:
 st.sidebar.title("Navigation")
 st.sidebar.markdown("""
 **WHO Region Codes:**
-- 0: Africa (AFRO)
-- 1: Americas (AMRO)
-- 2: South-East Asia (SEARO)
-- 3: Europe (EURO)
-- 4: Eastern Mediterranean (EMRO)
-- 5: Western Pacific (WPRO)
+- Africa (AFRO)
+- Americas (AMRO)
+- South-East Asia (SEARO)
+- Europe (EURO)
+- Eastern Mediterranean (EMRO)
+- Western Pacific (WPRO)
 """)
 page = st.sidebar.radio("Go to", ["Predict HIV Probability", "View Data"])
 
@@ -36,11 +46,22 @@ if page == "Predict HIV Probability":
     new_cases = st.number_input("New Cases (Adults)", min_value=0.0, value=1000.0)
     deaths = st.number_input("Deaths", min_value=0.0, value=100.0)
     mother_to_child = st.number_input("Mother-to-Child Prevention (%)", min_value=0.0, max_value=100.0, value=80.0)
-    who_region = st.number_input("WHO Region (Encoded)", min_value=0, max_value=10, value=1)
+    who_region = st.selectbox("WHO Region", WHO_REGIONS)
+
+    # Prepare input for model (one-hot encoding for region)
+    input_dict = {
+        'Estimated ART coverage among people living with HIV (%)_median': art_coverage,
+        'Estimated ART coverage among children (%)_median': art_coverage_children,
+        'New_Cases_Adults': new_cases,
+        'Deaths': deaths,
+        'Mother_to_Child_Prevention': mother_to_child,
+    }
+    # Add one-hot region columns
+    for region in WHO_REGIONS:
+        input_dict[f'WHO Region_{region}'] = 1 if region == who_region else 0
 
     if st.button("Predict"):
-        # Prepare input for model (customize as per your model's requirements)
-        X = [[art_coverage, art_coverage_children, new_cases, deaths, mother_to_child, who_region]]  # Update this line as needed
+        X = pd.DataFrame([input_dict])
         if hasattr(model, "predict_proba"):
             probability = model.predict_proba(X)[0][1]
             st.success(f"Predicted HIV Probability: {probability:.2%}")

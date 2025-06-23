@@ -49,9 +49,9 @@ df['HIV_Probability'] = df['People_Living_with_HIV'] / df['Population']
 # Fill missing values with column medians
 df.fillna(df.median(numeric_only=True), inplace=True)
 
-# Encode 'WHO Region'
-le = LabelEncoder()
-df['WHO_Region_Encoded'] = le.fit_transform(df['WHO Region'])
+# One-hot encode 'WHO Region' for better model sensitivity
+who_region_dummies = pd.get_dummies(df['WHO Region'], prefix='WHO Region')
+df = pd.concat([df, who_region_dummies], axis=1)
 
 # Step 6: Define Features and Target
 features = [
@@ -59,9 +59,8 @@ features = [
     'Estimated ART coverage among children (%)_median',
     'New_Cases_Adults',
     'Deaths',
-    'Mother_to_Child_Prevention',
-    'WHO_Region_Encoded'
-]
+    'Mother_to_Child_Prevention'
+] + list(who_region_dummies.columns)
 
 X = df[features]
 y = df['HIV_Probability']
