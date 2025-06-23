@@ -18,6 +18,15 @@ except Exception as e:
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
+st.sidebar.markdown("""
+**WHO Region Codes:**
+- 0: Africa (AFRO)
+- 1: Americas (AMRO)
+- 2: South-East Asia (SEARO)
+- 3: Europe (EURO)
+- 4: Eastern Mediterranean (EMRO)
+- 5: Western Pacific (WPRO)
+""")
 page = st.sidebar.radio("Go to", ["Predict HIV Probability", "View Data"])
 
 if page == "Predict HIV Probability":
